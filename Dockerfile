@@ -16,6 +16,9 @@ RUN git clone --depth 1 https://obi-wana:${GITHUB_TOKEN}@github.com/Obi-Wana/ATH
 RUN apk add --no-cache --virtual .build-utils gcc g++ ninja git cmake $BUILD_DEPENDENCIES && \
     apk add --no-cache --virtual .dependencies libgcc libstdc++ $RUN_DEPENDENCIES
 
+# Install curl for service monitoring
+RUN apk add curl
+
 # Create a user to run anope later
 RUN adduser -u 10000 -h /anope/ -D -S anope
 
