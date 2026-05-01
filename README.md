@@ -80,6 +80,12 @@ $ docker pull anope/anope
 
 Considering to update your docker setup regularly.
 
+## Build image
+Build with custom anope fork and GitHub PAT:
+```
+docker build --build-arg GITHUB_TOKEN=github_pat_xxx -t anope-ath:x.y.z .
+```
+In docker compose use `anope-ath:x.y.z`
 
 # License
 

@@ -2,24 +2,29 @@ FROM alpine:3.23
 
 LABEL org.opencontainers.image.authors="Anope Team <team@anope.org>"
 
-ARG VERSION=2.0
+ARG VERSION=2.1
 ARG RUN_DEPENDENCIES="gnutls gnutls-utils mariadb-client mariadb-connector-c sqlite-libs"
 ARG BUILD_DEPENDENCIES="gnutls-dev mariadb-dev sqlite-dev"
-ARG EXTRA_MODULES="m_mysql m_sqlite m_ssl_gnutls"
+ARG EXTRA_MODULES="mysql sqlite ssl_gnutls ssl_openssl"
+ARG GITHUB_TOKEN
+
+# Setup private repo
+RUN apk add --no-cache git
+RUN mkdir -p /src
+RUN git clone --depth 1 https://obi-wana:${GITHUB_TOKEN}@github.com/Obi-Wana/ATH-IRC-Anope /src/anope
 
 RUN apk add --no-cache --virtual .build-utils gcc g++ ninja git cmake $BUILD_DEPENDENCIES && \
-    apk add --no-cache --virtual .dependencies libgcc libstdc++ $RUN_DEPENDENCIES && \
-    # Create a user to run anope later
-    adduser -u 10000 -h /anope/ -D -S anope && \
-    mkdir -p /src && \
-    cd /src && \
-    # Clone the requested version
-    git clone --depth 1 https://github.com/anope/anope.git anope -b $VERSION && \
-    cd /src/anope && \
+    apk add --no-cache --virtual .dependencies libgcc libstdc++ $RUN_DEPENDENCIES
+
+# Create a user to run anope later
+RUN adduser -u 10000 -h /anope/ -D -S anope
+
+RUN cd /src/anope && \
     # Add and overwrite modules
-    for module in $EXTRA_MODULES; do ln -s /src/anope/modules/extra/$module.cpp modules; done && \
-    mkdir build && \
-    cd /src/anope/build && \
+    for module in $EXTRA_MODULES; do ln -s /src/anope/modules/extra/$module.cpp modules; done
+
+RUN mkdir /src/anope/build
+RUN cd /src/anope/build && \
     cmake -DINSTDIR=/anope/ -DDEFUMASK=077 -DCMAKE_BUILD_TYPE=RELEASE -GNinja .. && \
     # Run build multi-threaded
     ninja install && \
@@ -44,4 +49,5 @@ VOLUME /data/
 
 USER anope
 
-CMD ["/anope/bin/services", "-n"]
+CMD ["/anope/bin/anope", "-nofork"]
+
