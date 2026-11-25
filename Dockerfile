@@ -6,12 +6,14 @@ ARG VERSION=2.1
 ARG RUN_DEPENDENCIES="gnutls gnutls-utils mariadb-client mariadb-connector-c sqlite-libs"
 ARG BUILD_DEPENDENCIES="gnutls-dev mariadb-dev sqlite-dev"
 ARG EXTRA_MODULES="mysql sqlite ssl_gnutls ssl_openssl"
-ARG GITHUB_TOKEN
 
 # Setup private repo
 RUN apk add --no-cache git
 RUN mkdir -p /src
-RUN git clone --depth 1 https://obi-wana:${GITHUB_TOKEN}@github.com/Obi-Wana/ATH-IRC-Anope /src/anope
+#RUN git clone --depth 1 https://obi-wana:${ATH_ANOPE_ACCESS_TOKEN}@github.com/Obi-Wana/ATH-IRC-Anope /src/anope
+RUN --mount=type=secret,id=gh_token,env=ATH_ANOPE_ACCESS_TOKEN \
+    git clone --depth 1 "https://obi-wana:${ATH_ANOPE_ACCESS_TOKEN}@github.com/Obi-Wana/ATH-IRC-Anope" /src/anope \
+    && git -C /src/anope remote set-url origin https://github.com/Obi-Wana/ATH-IRC-Anope 
 
 RUN apk add --no-cache --virtual .build-utils gcc g++ ninja git cmake $BUILD_DEPENDENCIES && \
     apk add --no-cache --virtual .dependencies libgcc libstdc++ $RUN_DEPENDENCIES
